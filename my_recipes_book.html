@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ספר המתכונים שלי</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Assistant', 'sans-serif'],
+                        serif: ['Frank Ruhl Libre', 'serif'],
+                    },
+                    colors: {
+                        cream: {
+                            50: '#FDFBF7',
+                            100: '#F7F3E8',
+                            200: '#EBE3D0',
+                        },
+                        earth: {
+                            300: '#D4C5B9',
+                            400: '#B8A391',
+                            500: '#8C7A6B',
+                            600: '#6B5A4E',
+                            700: '#4A3E36',
+                            800: '#332A25',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Assistant', sans-serif; 
+            background-color: #FDFBF7; 
+            color: #4A3E36;
+        }
+        h1, h2, h3, .font-serif {
+            font-family: 'Frank Ruhl Libre', serif;
+        }
+        
+        /* Elegant shadow for cards */
+        .recipe-card {
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 20px rgba(74, 62, 54, 0.05);
+        }
+        .recipe-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 12px 25px rgba(74, 62, 54, 0.08); 
+        }
+        
+        /* Custom earthy scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F7F3E8; }
+        ::-webkit-scrollbar-thumb { background: #D4C5B9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #B8A391; }
+        
+        .modal-overlay { backdrop-filter: blur(3px); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Minimalist input styling */
+        .input-minimal {
+            border: 1px solid #EBE3D0;
+            background-color: #FDFBF7;
+            transition: all 0.2s;
+        }
+        .input-minimal:focus {
+            border-color: #8C7A6B;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(140, 122, 107, 0.1);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <nav class="bg-cream-50/90 backdrop-blur-md sticky top-0 z-30 border-b border-cream-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center text-cream-50">
+                        <i class="fa-solid fa-leaf"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-earth-800 font-serif tracking-wide">המתכונים שלי</h1>
+                </div>
+                <button onclick="openAddModal()" class="bg-earth-700 hover:bg-earth-800 text-cream-50 px-6 py-2.5 rounded-full font-medium transition-colors flex items-center gap-2 text-sm shadow-md">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>מתכון חדש</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <!-- Categories Filter -->
+        <div class="mb-10 text-center">
+            <div id="categories-container" class="flex flex-wrap justify-center gap-3 pb-2 hide-scrollbar">
+                <!-- Category buttons injected here -->
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="flex flex-col items-center justify-center py-24 text-earth-400">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-earth-600"></i>
+            <p class="font-serif text-lg">מחמם את התנור...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-center max-w-md mx-auto">
+            <div class="bg-cream-100 p-8 rounded-full mb-6">
+                <i class="fa-solid fa-book-open-reader text-5xl text-earth-400"></i>
+            </div>
+            <h3 class="text-2xl font-serif text-earth-800 mb-3">ספר המתכונים שלך ריק</h3>
+            <p class="text-earth-600 mb-8 leading-relaxed">זה הזמן להתחיל לשמור את כל המתכונים האהובים עליך במקום אחד, מסודר ויפה.</p>
+            <button onclick="openAddModal()" class="bg-earth-100 text-earth-800 border border-earth-300 hover:bg-earth-200 px-8 py-3 rounded-full font-medium transition-colors shadow-sm">
+                הוספת מתכון ראשון
+            </button>
+        </div>
+
+        <!-- Recipe Grid -->
+        <div id="recipes-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- Recipe cards injected here -->
+        </div>
+    </main>
+
+    <!-- Add Recipe Modal -->
+    <div id="add-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-earth-800/40 transition-opacity modal-overlay" onclick="closeAddModal()"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-cream-50 text-right shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-cream-200">
+                    
+                    <div class="px-6 pb-6 pt-8 sm:px-8">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-3xl font-bold text-earth-800 font-serif" id="modal-title">מתכון חדש</h3>
+                            <button onclick="closeAddModal()" class="text-earth-400 hover:text-earth-700 transition-colors bg-cream-100 hover:bg-cream-200 rounded-full w-10 h-10 flex items-center justify-center">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        
+                        <form id="add-recipe-form" class="space-y-6 text-right">
+                            <!-- Title -->
+                            <div>
+                                <label for="title" class="block text-sm font-medium text-earth-700 mb-2">שם המתכון <span class="text-earth-500">*</span></label>
+                                <input type="text" id="title" required class="w-full rounded-xl input-minimal px-4 py-3 text-earth-800" placeholder="למשל: עוגת שוקולד של סבתא">
+                            </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <!-- Category -->
+                                <div>
+                                    <label for="category" class="block text-sm font-medium text-earth-700 mb-2">קטגוריה <span class="text-earth-500">*</span></label>
+                                    <select id="category" required class="w-full rounded-xl input-minimal px-4 py-3 text-earth-800 appearance-none bg-no-repeat" style="background-position: left 1rem center; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' fill=\'%238C7A6B\'><path d=\'M4 6l4 4 4-4\'/></svg>');">
+                                        <option value="" disabled selected>בחירת קטגוריה...</option>
+                                        <option value="מנות עיקריות">מנות עיקריות</option>
+                                        <option value="תוספות">תוספות</option>
+                                        <option value="סלטים">סלטים</option>
+                                        <option value="מרקים">מרקים</option>
+                                        <option value="מאפים">מאפים</option>
+                                        <option value="קינוחים">קינוחים</option>
+                                        <option value="ארוחות בוקר">ארוחות בוקר</option>
+                                        <option value="משקאות">משקאות</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Image URL -->
+                                <div>
+                                    <label for="image" class="block text-sm font-medium text-earth-700 mb-2">קישור לתמונה (אופציונלי)</label>
+                                    <input type="url" id="image" placeholder="https://..." class="w-full rounded-xl input-minimal px-4 py-3 text-left text-earth-800" dir="ltr">
+                                </div>
+                            </div>
+
+                            <!-- Ingredients -->
+                            <div>
+                                <label for="ingredients" class="block text-sm font-medium text-earth-700 mb-1">מצרכים <span class="text-earth-500">*</span></label>
+                                <p class="text-xs text-earth-500 mb-2">שורה נפרדת לכל מצרך</p>
+                                <textarea id="ingredients" required rows="4" class="w-full rounded-xl input-minimal px-4 py-3 text-earth-800 resize-y" placeholder="2 כוסות קמח&#10;1 כוס סוכר..."></textarea>
+                            </div>
+
+                            <!-- Instructions -->
+                            <div>
+                                <label for="instructions" class="block text-sm font-medium text-earth-700 mb-2">אופן ההכנה <span class="text-earth-500">*</span></label>
+                                <textarea id="instructions" required rows="5" class="w-full rounded-xl input-minimal px-4 py-3 text-earth-800 resize-y" placeholder="מחממים תנור ל-180 מעלות..."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="bg-cream-100/50 px-6 py-4 sm:flex sm:flex-row-reverse sm:px-8 border-t border-cream-200">
+                        <button type="button" onclick="submitRecipe()" class="inline-flex w-full justify-center rounded-full bg-earth-700 px-8 py-2.5 text-sm font-medium text-cream-50 shadow-sm hover:bg-earth-800 sm:ml-4 sm:w-auto transition-colors">
+                            שמירת מתכון
+                        </button>
+                        <button type="button" onclick="closeAddModal()" class="mt-3 inline-flex w-full justify-center rounded-full bg-transparent px-8 py-2.5 text-sm font-medium text-earth-700 hover:bg-cream-200 sm:mt-0 sm:w-auto transition-colors">
+                            ביטול
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Recipe Modal -->
+    <div id="view-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-earth-900/60 transition-opacity modal-overlay" onclick="closeViewModal()"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-0 sm:p-6 text-center">
+                <div class="relative transform overflow-hidden bg-cream-50 text-right shadow-2xl transition-all sm:rounded-3xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:w-full sm:max-w-4xl flex flex-col border border-cream-200">
+                    
+                    <!-- Header Image & Close Button -->
+                    <div class="relative h-56 sm:h-72 md:h-96 w-full shrink-0 bg-earth-200">
+                        <img id="view-image" src="" alt="Recipe" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-earth-900/90 via-earth-900/30 to-transparent"></div>
+                        
+                        <button onclick="closeViewModal()" class="absolute top-4 right-4 text-cream-50 hover:text-white transition-colors bg-earth-900/40 hover:bg-earth-900/60 rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-md">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        
+                        <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-10 text-cream-50">
+                            <span id="view-category" class="inline-block bg-cream-100 text-earth-800 text-sm px-4 py-1.5 rounded-full font-medium mb-4 shadow-sm"></span>
+                            <h2 id="view-title" class="text-3xl sm:text-4xl md:text-5xl font-bold font-serif drop-shadow-lg leading-tight"></h2>
+                        </div>
+                    </div>
+                    
+                    <!-- Content Area -->
+                    <div class="flex-grow overflow-y-auto p-6 sm:p-10 flex flex-col md:flex-row gap-10">
+                        
+                        <!-- Ingredients Sidebar -->
+                        <div class="w-full md:w-1/3 shrink-0">
+                            <div class="bg-cream-100/60 rounded-2xl p-6 border border-cream-200 h-full">
+                                <h3 class="text-2xl font-serif text-earth-800 mb-6 flex items-center gap-3">
+                                    מצרכים
+                                </h3>
+                                <ul id="view-ingredients" class="space-y-4 text-earth-700 font-medium">
+                                    <!-- Ingredients injected here -->
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Instructions Main Area -->
+                        <div class="w-full md:w-2/3">
+                            <h3 class="text-2xl font-serif text-earth-800 mb-6 flex items-center gap-3">
+                                אופן ההכנה
+                            </h3>
+                            <div id="view-instructions" class="text-earth-700 leading-loose space-y-4 whitespace-pre-wrap text-lg">
+                                <!-- Instructions injected here -->
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Footer Actions -->
+                    <div class="bg-cream-100/50 px-6 py-4 border-t border-cream-200 shrink-0 flex justify-between items-center">
+                        <button id="delete-btn" class="text-red-800 hover:text-red-900 bg-red-100 hover:bg-red-200 px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 text-sm font-medium">
+                            <i class="fa-solid fa-trash-can"></i> מחיקת מתכון
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State
+        let allRecipes = [];
+        let currentFilter = 'הכל';
+        let currentUserId = null;
+        let db = null;
+        let auth = null;
+        let unsubscribe = null;
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'recipe-app-neutral';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "dummy", authDomain: "dummy", projectId: "dummy"
+        };
+        const customToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const CATEGORIES = [
+            'הכל', 'מנות עיקריות', 'תוספות', 'סלטים', 'מרקים', 'מאפים', 'קינוחים', 'ארוחות בוקר', 'משקאות'
+        ];
+
+        // Warm/Natural Placeholder images by category
+        const PLACEHOLDER_IMAGES = {
+            'מנות עיקריות': 'https://images.unsplash.com/photo-1547496502-affa22d38842?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'תוספות': 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'סלטים': 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'מרקים': 'https://images.unsplash.com/photo-1605336021616-eec00c2805fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'מאפים': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'קינוחים': 'https://images.unsplash.com/photo-1488477181946-6428a0291777?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'ארוחות בוקר': 'https://images.unsplash.com/photo-1495474472207-464ba52b1497?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'משקאות': 'https://images.unsplash.com/photo-1511920170033-f8396924c348?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            'default': 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+        };
+
+        async function initApp() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (customToken) {
+                    await signInWithCustomToken(auth, customToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                currentUserId = auth.currentUser.uid;
+                renderCategories();
+                setupRealtimeListener();
+
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                document.getElementById('loading-state').innerHTML = `
+                    <div class="text-earth-600 text-center">
+                        <i class="fa-solid fa-circle-exclamation text-4xl mb-4"></i>
+                        <p>שגיאה בטעינת הנתונים.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function setupRealtimeListener() {
+            if (!currentUserId || !db) return;
+
+            const recipesRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'recipes');
+            const q = query(recipesRef);
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                allRecipes = [];
+                snapshot.forEach((doc) => {
+                    allRecipes.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort newest first
+                allRecipes.sort((a, b) => {
+                    const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+                    const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                document.getElementById('loading-state').classList.add('hidden');
+                updateUI();
+            }, (error) => {
+                console.error("Firestore listener error:", error);
+            });
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+            
+            CATEGORIES.forEach(cat => {
+                const isSelected = cat === currentFilter;
+                const btn = document.createElement('button');
+                btn.className = `px-5 py-2 rounded-full text-sm transition-all shadow-sm ${
+                    isSelected 
+                    ? 'bg-earth-700 text-cream-50 font-medium' 
+                    : 'bg-white text-earth-700 border border-cream-200 hover:bg-cream-100'
+                }`;
+                btn.textContent = cat;
+                btn.onclick = () => setFilter(cat);
+                container.appendChild(btn);
+            });
+        }
+
+        function setFilter(category) {
+            currentFilter = category;
+            renderCategories();
+            updateUI();
+        }
+
+        function updateUI() {
+            const grid = document.getElementById('recipes-grid');
+            const emptyState = document.getElementById('empty-state');
+            
+            const filteredRecipes = currentFilter === 'הכל' 
+                ? allRecipes 
+                : allRecipes.filter(r => r.category === currentFilter);
+
+            grid.innerHTML = '';
+
+            if (filteredRecipes.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                
+                if (allRecipes.length > 0) {
+                    emptyState.querySelector('h3').textContent = 'אין מתכונים בקטגוריה זו';
+                    emptyState.querySelector('p').textContent = 'אפשר לנסות קטגוריה אחרת או להוסיף מתכון חדש.';
+                } else {
+                    emptyState.querySelector('h3').textContent = 'ספר המתכונים שלך ריק';
+                    emptyState.querySelector('p').textContent = 'זה הזמן להתחיל לשמור את כל המתכונים האהובים עליך במקום אחד, מסודר ויפה.';
+                }
+            } else {
+                emptyState.classList.add('hidden');
+                grid.classList.remove('hidden');
+                
+                filteredRecipes.forEach(recipe => {
+                    grid.appendChild(createRecipeCard(recipe));
+                });
+            }
+        }
+
+        function createRecipeCard(recipe) {
+            const card = document.createElement('div');
+            card.className = 'recipe-card bg-white rounded-3xl overflow-hidden border border-cream-200 cursor-pointer flex flex-col h-full';
+            card.onclick = () => openViewModal(recipe);
+            
+            const imgUrl = recipe.image || PLACEHOLDER_IMAGES[recipe.category] || PLACEHOLDER_IMAGES['default'];
+            
+            card.innerHTML = `
+                <div class="relative h-56 w-full bg-cream-100 shrink-0">
+                    <img src="${imgUrl}" alt="${recipe.title}" class="w-full h-full object-cover" onerror="this.src='${PLACEHOLDER_IMAGES['default']}'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-earth-900/60 to-transparent opacity-60"></div>
+                    <div class="absolute top-4 right-4 bg-cream-50/90 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold text-earth-700 shadow-sm">
+                        ${recipe.category}
+                    </div>
+                </div>
+                <div class="p-6 flex-grow flex flex-col bg-white">
+                    <h3 class="text-xl font-bold text-earth-800 mb-3 font-serif line-clamp-2 leading-snug">${recipe.title}</h3>
+                    <div class="mt-auto pt-4 flex items-center justify-between text-sm text-earth-500 border-t border-cream-100">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-earth-400"></i> ${recipe.ingredients.split('\n').filter(i=>i.trim()).length} מצרכים</span>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        window.openAddModal = () => {
+            document.getElementById('add-recipe-form').reset();
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeAddModal = () => {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        };
+
+        window.submitRecipe = async () => {
+            const form = document.getElementById('add-recipe-form');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            if (!currentUserId || !db) return;
+
+            const title = document.getElementById('title').value.trim();
+            const category = document.getElementById('category').value;
+            const ingredients = document.getElementById('ingredients').value.trim();
+            const instructions = document.getElementById('instructions').value.trim();
+            const image = document.getElementById('image').value.trim();
+
+            const recipeData = {
+                title, category, ingredients, instructions, image,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                const btn = document.querySelector('#add-modal button[onclick="submitRecipe()"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                btn.disabled = true;
+
+                const recipesRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'recipes');
+                await addDoc(recipesRef, recipeData);
+                
+                closeAddModal();
+            } catch (error) {
+                console.error("Error adding recipe: ", error);
+            } finally {
+                const btn = document.querySelector('#add-modal button[onclick="submitRecipe()"]');
+                btn.innerHTML = 'שמירת מתכון';
+                btn.disabled = false;
+            }
+        };
+
+        window.openViewModal = (recipe) => {
+            const imgUrl = recipe.image || PLACEHOLDER_IMAGES[recipe.category] || PLACEHOLDER_IMAGES['default'];
+            
+            document.getElementById('view-image').src = imgUrl;
+            document.getElementById('view-image').onerror = function() { this.src = PLACEHOLDER_IMAGES['default']; };
+            
+            document.getElementById('view-category').textContent = recipe.category;
+            document.getElementById('view-title').textContent = recipe.title;
+            
+            const ingredientsList = document.getElementById('view-ingredients');
+            ingredientsList.innerHTML = '';
+            const ingArray = recipe.ingredients.split('\n').filter(i => i.trim() !== '');
+            ingArray.forEach(ing => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-3 border-b border-cream-200/60 pb-3 last:border-0';
+                li.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-earth-400 mt-2.5 shrink-0"></span> <span>${ing.trim()}</span>`;
+                ingredientsList.appendChild(li);
+            });
+
+            document.getElementById('view-instructions').innerHTML = recipe.instructions.replace(/\n/g, '<br><br>');
+
+            const deleteBtn = document.getElementById('delete-btn');
+            deleteBtn.onclick = () => deleteRecipe(recipe.id);
+
+            document.getElementById('view-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeViewModal = () => {
+            document.getElementById('view-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        };
+
+        window.deleteRecipe = async (id) => {
+            if (!currentUserId || !db) return;
+            
+            const btn = document.getElementById('delete-btn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUserId, 'recipes', id));
+                closeViewModal();
+            } catch (error) {
+                console.error("Error deleting recipe: ", error);
+                btn.innerHTML = '<i class="fa-solid fa-trash-can"></i> מחיקת מתכון';
+                btn.disabled = false;
+            }
+        };
+
+        // Bootstrap application
+        initApp();
+
+    </script>
+</body>
+</html>
