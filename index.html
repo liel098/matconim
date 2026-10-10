@@ -6,8 +6,8 @@
     <title>המתכונים שלי</title>
     <style>
         :root {
-            --primary: #8D6E63; /* חום אדמה */
-            --bg-color: #FDFBF7; /* קרם טבעי */
+            --primary: #8D6E63;
+            --bg-color: #FDFBF7;
             --card-bg: #FFFFFF;
             --text-main: #4E342E;
         }
@@ -16,65 +16,124 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
-        h1 { text-align: center; color: var(--primary); font-weight: 600; }
+        h1 { text-align: center; color: var(--primary); font-weight: 600; margin-top: 10px; }
         .container { max-width: 600px; margin: 0 auto; }
-        .recipe-form { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 30px; }
-        input, textarea, select { width: 100%; box-sizing: border-box; margin-top: 10px; padding: 12px; border: 1px solid #E0E0E0; border-radius: 8px; font-family: inherit; font-size: 15px; }
+        
+        .box { background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
+        
+        input, textarea, select { width: 100%; box-sizing: border-box; margin-top: 10px; padding: 10px; border: 1px solid #E0E0E0; border-radius: 8px; font-family: inherit; font-size: 15px; }
         input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); }
+        
         button { width: 100%; background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 15px; padding: 12px; border-radius: 8px; transition: 0.2s; }
         button:hover { opacity: 0.9; }
-        .recipe-list { display: flex; flex-direction: column; gap: 20px; }
-        .recipe-card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-right: 5px solid var(--primary); }
-        .recipe-card h3 { margin: 0 0 10px 0; color: var(--text-main); }
-        .category-tag { display: inline-block; background: #EFEBE9; color: var(--primary); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 15px; }
+        
+        /* אזור הכלים - חיפוש וסינון */
+        .tools-bar { display: flex; gap: 10px; margin-top: 10px; }
+        .tools-bar input, .tools-bar select { margin-top: 0; }
+        
+        .recipe-list { display: flex; flex-direction: column; gap: 15px; }
+        .recipe-card { background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-right: 5px solid var(--primary); }
+        .recipe-card h3 { margin: 0 0 10px 0; color: var(--text-main); font-size: 20px;}
+        .category-tag { display: inline-block; background: #EFEBE9; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+        .recipe-image { width: 100%; height: auto; border-radius: 8px; margin-bottom: 15px; object-fit: cover; max-height: 250px; }
+        
         .delete-btn { background-color: #EF5350; margin-top: 15px; padding: 8px; font-size: 14px; width: auto; border-radius: 6px; }
+        
+        input[type="file"] { padding: 8px; background: #f9f9f9; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>המתכונים שלי 🌿</h1>
         
-        <div class="recipe-form">
+        <!-- אזור הוספת מתכון -->
+        <div class="box">
             <h2 style="font-size: 18px; margin-top:0;">הוספת מתכון חדש</h2>
-            <input type="text" id="recipeName" placeholder="שם המתכון (למשל: עוגת ביסקוויטים)" required>
+            <input type="text" id="recipeName" placeholder="שם המתכון" required>
             <select id="recipeCategory">
-                <option value="ראשונות">מנות ראשונות</option>
-                <option value="עיקריות">מנות עיקריות</option>
-                <option value="תוספות">תוספות</option>
-                <option value="קינוחים">קינוחים</option>
-                <option value="מאפים">מאפים</option>
+                <option value="מנות ראשונות">מנות ראשונות</option>
+                <option value="סלטים">סלטים</option>
+                <option value="בשרי">בשרי</option>
+                <option value="מאפים מלוחים">מאפים מלוחים</option>
+                <option value="מנות לאירוח">מנות לאירוח</option>
+                <option value="מתוקים">מתוקים</option>
             </select>
             <textarea id="recipeIngredients" placeholder="מצרכים (מומלץ לרדת שורה בין מצרך למצרך)" rows="4" required></textarea>
-            <textarea id="recipeInstructions" placeholder="אופן ההכנה..." rows="5" required></textarea>
+            <textarea id="recipeInstructions" placeholder="אופן ההכנה..." rows="4" required></textarea>
+            
+            <label style="display:block; margin-top:10px; font-size:14px; color:#666;">הוספת תמונה (אופציונלי):</label>
+            <input type="file" id="recipeImage" accept="image/*">
+            
             <button onclick="addRecipe()">שמירת מתכון</button>
         </div>
 
-        <div class="recipe-list" id="recipesContainer">
-            <!-- המתכונים יופיעו כאן -->
+        <!-- אזור חיפוש וסינון -->
+        <div class="box">
+            <h2 style="font-size: 16px; margin-top:0; margin-bottom:5px;">חיפוש וסינון</h2>
+            <div class="tools-bar">
+                <input type="text" id="searchInput" placeholder="חיפוש לפי שם..." onkeyup="renderRecipes()">
+                <select id="filterCategory" onchange="renderRecipes()">
+                    <option value="הכל">הכל</option>
+                    <option value="מנות ראשונות">מנות ראשונות</option>
+                    <option value="סלטים">סלטים</option>
+                    <option value="בשרי">בשרי</option>
+                    <option value="מאפים מלוחים">מאפים מלוחים</option>
+                    <option value="מנות לאירוח">מנות לאירוח</option>
+                    <option value="מתוקים">מתוקים</option>
+                </select>
+            </div>
         </div>
+
+        <!-- רשימת המתכונים -->
+        <div class="recipe-list" id="recipesContainer"></div>
     </div>
 
     <script>
-        function loadRecipes() {
-            const recipes = JSON.parse(localStorage.getItem('myMobileRecipes')) || [];
+        let recipes = JSON.parse(localStorage.getItem('myMobileRecipes')) || [];
+
+        function renderRecipes() {
             const container = document.getElementById('recipesContainer');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterCategory = document.getElementById('filterCategory').value;
+            
             container.innerHTML = '';
             
             if (recipes.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #8D6E63;">עדיין אין כאן מתכונים. את מוזמנת להוסיף את המתכון הראשון שלך!</p>';
+                container.innerHTML = '<p style="text-align: center; color: #8D6E63;">עדיין אין מתכונים. הוסיפי את הראשון שלך למעלה!</p>';
                 return;
             }
 
-            // הצגת המתכונים מהחדש לישן
-            recipes.slice().reverse().forEach((recipe, index) => {
-                const originalIndex = recipes.length - 1 - index;
+            // סינון המתכונים לפי חיפוש וקטגוריה
+            const filteredRecipes = recipes.filter(recipe => {
+                const matchesSearch = recipe.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = filterCategory === 'הכל' || recipe.category === filterCategory;
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filteredRecipes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #8D6E63;">לא נמצאו מתכונים שתואמים לחיפוש.</p>';
+                return;
+            }
+
+            // תצוגה (מהחדש לישן)
+            filteredRecipes.slice().reverse().forEach(recipe => {
+                // מציאת האינדקס המקורי למחיקה נכונה
+                const originalIndex = recipes.findIndex(r => r.id === recipe.id);
+                
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
+                
+                let imageHtml = '';
+                if (recipe.image) {
+                    imageHtml = `<img src="${recipe.image}" class="recipe-image" alt="${recipe.name}">`;
+                }
+
                 card.innerHTML = `
                     <h3>${recipe.name}</h3>
                     <span class="category-tag">${recipe.category}</span>
+                    ${imageHtml}
                     <p><strong>מצרכים:</strong><br>${recipe.ingredients.replace(/\\n/g, '<br>')}</p>
                     <p><strong>אופן ההכנה:</strong><br>${recipe.instructions.replace(/\\n/g, '<br>')}</p>
                     <button class="delete-btn" onclick="deleteRecipe(${originalIndex})">מחיקת מתכון</button>
@@ -83,42 +142,84 @@
             });
         }
 
+        // פונקציה להקטנת התמונה לפני שמירה כדי לחסוך מקום בפלאפון
+        function resizeImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 600;
+                    const scaleSize = MAX_WIDTH / img.width;
+                    
+                    if (img.width > MAX_WIDTH) {
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+                    } else {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                    }
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    callback(canvas.toDataURL('image/jpeg', 0.6)); // שמירה באיכות 60%
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
         function addRecipe() {
             const name = document.getElementById('recipeName').value;
             const category = document.getElementById('recipeCategory').value;
             const ingredients = document.getElementById('recipeIngredients').value;
             const instructions = document.getElementById('recipeInstructions').value;
+            const imageFile = document.getElementById('recipeImage').files[0];
 
             if (!name || !ingredients || !instructions) {
-                alert('נא למלא את כל השדות כדי לשמור את המתכון.');
+                alert('נא למלא את שם המתכון, המצרכים ואופן ההכנה.');
                 return;
             }
 
-            const newRecipe = { name, category, ingredients, instructions };
-            const recipes = JSON.parse(localStorage.getItem('myMobileRecipes')) || [];
-            recipes.push(newRecipe);
-            
-            localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
-            
-            // איפוס השדות אחרי השמירה
-            document.getElementById('recipeName').value = '';
-            document.getElementById('recipeIngredients').value = '';
-            document.getElementById('recipeInstructions').value = '';
-            
-            loadRecipes();
+            const saveProcess = (imageBase64) => {
+                const newRecipe = { 
+                    id: Date.now(), // מזהה ייחודי לכל מתכון
+                    name, 
+                    category, 
+                    ingredients, 
+                    instructions,
+                    image: imageBase64
+                };
+                
+                recipes.push(newRecipe);
+                localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
+                
+                // איפוס טופס
+                document.getElementById('recipeName').value = '';
+                document.getElementById('recipeIngredients').value = '';
+                document.getElementById('recipeInstructions').value = '';
+                document.getElementById('recipeImage').value = '';
+                
+                renderRecipes();
+            };
+
+            if (imageFile) {
+                resizeImage(imageFile, saveProcess);
+            } else {
+                saveProcess('');
+            }
         }
 
         function deleteRecipe(index) {
             if (confirm('בטוחה שאת רוצה למחוק את המתכון הזה?')) {
-                const recipes = JSON.parse(localStorage.getItem('myMobileRecipes')) || [];
                 recipes.splice(index, 1);
                 localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
-                loadRecipes();
+                renderRecipes();
             }
         }
 
-        // טעינת המתכונים כשהדף עולה
-        loadRecipes();
+        // טעינה ראשונית
+        renderRecipes();
     </script>
 </body>
 </html>
