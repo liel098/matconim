@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>המתכונים שלי 🌿</title>
+    <!-- הוספנו defer כדי שהספרייה לא תתקע את שאר האתר -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
     <style>
         :root {
-            --primary: #4A3525; /* חום כהה עמוק */
-            --accent: #8E7A5F; /* חום-חול חם */
-            --natural-green: #5B6D54; /* ירוק-זית עמוק */
-            --soft-terracotta: #D37A5A; /* טרקוטה רכה */
-            --bg-color: #FAF6F0; /* שמנת/קרם טבעי עדין */
+            --primary: #4A3525;
+            --accent: #8E7A5F;
+            --natural-green: #5B6D54;
+            --soft-terracotta: #D37A5A;
+            --bg-color: #FAF6F0;
             --card-bg: #FFFFFF;
-            --text-main: #332219; /* חום-שחור קריא */
-            --text-muted: #736254;
+            --text-main: #332219;
             --border-color: #EFE9DF;
         }
         
@@ -29,256 +30,63 @@
         }
         
         .container { max-width: 550px; margin: 0 auto; }
+        header { text-align: center; margin: 15px 0 25px; }
         
-        header {
-            text-align: center;
-            margin: 15px 0 25px;
-        }
+        .logo-title { font-size: 26px; font-weight: 800; color: var(--primary); margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .logo-subtitle { font-size: 13px; color: var(--accent); margin-top: 4px; letter-spacing: 0.5px; }
         
-        .logo-title {
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--primary);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .logo-subtitle {
-            font-size: 13px;
-            color: var(--accent);
-            margin-top: 4px;
-            letter-spacing: 0.5px;
-        }
-        
-        /* אזור הוספת מתכון - משודרג */
-        .card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(142, 122, 95, 0.08);
-            border: 1px solid var(--border-color);
-            margin-bottom: 24px;
-        }
-        
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0 0 15px 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 8px;
-        }
+        .card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(142, 122, 95, 0.08); border: 1px solid var(--border-color); margin-bottom: 24px; }
+        .card-title { font-size: 18px; font-weight: 700; color: var(--primary); margin: 0 0 15px 0; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; }
 
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 5px; }
         
-        input, textarea, select {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1.5px solid var(--border-color);
-            background-color: #FCFAF7;
-            border-radius: 12px;
-            font-family: inherit;
-            font-size: 14px;
-            color: var(--text-main);
-            transition: all 0.25s ease;
-        }
-        
+        input, textarea, select { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-color); background-color: #FCFAF7; border-radius: 12px; font-family: inherit; font-size: 14px; color: var(--text-main); transition: all 0.25s ease; }
         input::placeholder, textarea::placeholder { color: #AFA090; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); background-color: #FFFFFF; box-shadow: 0 0 0 3px rgba(142, 122, 95, 0.08); }
         
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            background-color: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(142, 122, 95, 0.08);
-        }
-        
-        /* כפתור העלאת קבצים מעוצב */
-        .file-upload-wrapper {
-            position: relative;
-            background: #FCFAF7;
-            border: 2px dashed #D6CBB7;
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
+        .file-upload-wrapper { position: relative; background: #FCFAF7; border: 2px dashed #D6CBB7; border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
         .file-upload-wrapper:active { background: #EFE9DF; }
-        .file-upload-wrapper input[type="file"] {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0; cursor: pointer;
-        }
+        .file-upload-wrapper input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         .file-upload-text { font-size: 13px; font-weight: 600; color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-        .btn-submit {
-            width: 100%;
-            background-color: var(--natural-green);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 14px;
-            font-weight: 750;
-            font-size: 15px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(91, 109, 84, 0.2);
-            transition: all 0.2s ease;
-            margin-top: 10px;
-        }
-        
+        .ocr-btn { background-color: #F1ECE3; color: var(--primary); border: 1px solid var(--border-color); padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none; width: 100%; transition: all 0.2s; }
+        .ocr-btn:hover { background-color: #EFE9DF; }
+        .ocr-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .ocr-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: block; text-align: center; font-weight: 600; }
+
+        .btn-submit { width: 100%; background-color: var(--natural-green); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 750; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(91, 109, 84, 0.2); transition: all 0.2s ease; margin-top: 10px; }
         .btn-submit:active { transform: translateY(1px); box-shadow: none; }
         
-        /* אזור חיפוש וקטגוריות */
-        .search-box {
-            position: relative;
-            margin-bottom: 12px;
-        }
-        .search-input {
-            padding-right: 35px;
-            border-radius: 16px;
-            background-color: #FFFFFF;
-            box-shadow: 0 5px 15px rgba(142, 122, 95, 0.04);
-        }
-        .search-icon {
-            position: absolute; right: 12px; top: 50%;
-            transform: translateY(-50%); color: var(--accent);
-            font-size: 16px; pointer-events: none;
-        }
+        .search-box { position: relative; margin-bottom: 12px; }
+        .search-input { padding-right: 35px; border-radius: 16px; background-color: #FFFFFF; box-shadow: 0 5px 15px rgba(142, 122, 95, 0.04); }
+        .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--accent); font-size: 16px; pointer-events: none; }
         
-        /* סינון קטגוריות אופקי (Chips) */
-        .category-chips {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 4px 2px 10px;
-            margin-bottom: 20px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* מסתיר את הגלילה במכשירים תומכים */
-        }
+        .category-chips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 10px; margin-bottom: 20px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .category-chips::-webkit-scrollbar { display: none; }
         
-        .chip {
-            white-space: nowrap;
-            background: #F1ECE3;
-            color: var(--accent);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-        .chip.active {
-            background-color: var(--primary);
-            color: #FFFFFF;
-            box-shadow: 0 4px 10px rgba(51, 34, 25, 0.15);
-        }
+        .chip { white-space: nowrap; background: #F1ECE3; color: var(--accent); border: none; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.25s ease; }
+        .chip.active { background-color: var(--primary); color: #FFFFFF; box-shadow: 0 4px 10px rgba(51, 34, 25, 0.15); }
         
-        /* רשימת המתכונים */
         .recipe-list { display: flex; flex-direction: column; gap: 20px; }
-        
-        .recipe-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(142, 122, 95, 0.06);
-            border: 1px solid var(--border-color);
-            position: relative;
-            transition: transform 0.2s;
-        }
-        
+        .recipe-card { background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(142, 122, 95, 0.06); border: 1px solid var(--border-color); position: relative; }
         .recipe-content { padding: 18px; }
+        .recipe-card h3 { font-size: 20px; font-weight: 800; margin: 0 0 6px 0; color: var(--primary); line-height: 1.3; }
         
-        .recipe-card h3 {
-            font-size: 20px;
-            font-weight: 800;
-            margin: 0 0 6px 0;
-            color: var(--primary);
-            line-height: 1.3;
-        }
+        .tag { display: inline-block; background: #F7F3EB; color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 750; margin-bottom: 12px; }
         
-        .tag {
-            display: inline-block;
-            background: #F7F3EB;
-            color: var(--accent);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 750;
-            margin-bottom: 12px;
-        }
+        .recipe-image-container { width: 100%; max-height: 350px; overflow: hidden; background: #FAF8F5; display: flex; align-items: center; justify-content: center; border-bottom: 1px dashed var(--border-color); }
+        .recipe-image { width: 100%; height: auto; max-height: 350px; object-fit: contain; }
         
-        .recipe-image-container {
-            width: 100%;
-            max-height: 350px;
-            overflow: hidden;
-            background: #FAF8F5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-bottom: 1px dashed var(--border-color);
-        }
-        .recipe-image {
-            width: 100%;
-            height: auto;
-            max-height: 350px;
-            object-fit: contain; /* מעולה לצילומי מסך שלא נרצה שיחתכו */
-        }
+        .recipe-text-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid #FAF6F0; }
+        .recipe-text-section strong { display: block; font-size: 13px; color: var(--accent); margin-bottom: 4px; font-weight: 750; }
+        .recipe-text-section p { margin: 0; font-size: 14px; color: var(--text-main); white-space: pre-line; }
         
-        .recipe-text-section {
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid #FAF6F0;
-        }
-        .recipe-text-section strong {
-            display: block;
-            font-size: 13px;
-            color: var(--accent);
-            margin-bottom: 4px;
-            font-weight: 750;
-        }
-        .recipe-text-section p {
-            margin: 0;
-            font-size: 14px;
-            color: var(--text-main);
-            white-space: pre-line; /* שומר על ירידת שורה */
-        }
-        
-        .card-footer {
-            display: flex;
-            justify-content: flex-end;
-            padding: 12px 18px;
-            background-color: #FCFAF7;
-            border-top: 1.5px solid var(--border-color);
-        }
-        
-        .delete-btn {
-            background-color: transparent;
-            color: var(--soft-terracotta);
-            border: 1px solid #F6DDD2;
-            padding: 6px 14px;
-            font-size: 12px;
-            font-weight: 700;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            width: auto; margin: 0;
-        }
+        .card-footer { display: flex; justify-content: flex-end; padding: 12px 18px; background-color: #FCFAF7; border-top: 1.5px solid var(--border-color); }
+        .delete-btn { background-color: transparent; color: var(--soft-terracotta); border: 1px solid #F6DDD2; padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; }
         .delete-btn:active { background: #F6DDD2; }
         
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--accent);
-        }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--accent); }
         .empty-state p { margin: 10px 0 0; font-size: 15px; }
     </style>
 </head>
@@ -289,7 +97,6 @@
             <div class="logo-subtitle">ספר המתכונים האישי והמהיר שלי</div>
         </header>
         
-        <!-- כרטיס הוספה -->
         <div class="card">
             <h2 class="card-title">📖 הוספת מתכון חדש</h2>
             
@@ -314,8 +121,10 @@
                 <label>צילום המתכון / תמונה</label>
                 <div class="file-upload-wrapper">
                     <span class="file-upload-text" id="fileText">📷 לחצי להעלאת תמונה או צילום מסך</span>
-                    <input type="file" id="recipeImage" accept="image/*" onchange="updateFileStatus()">
+                    <input type="file" id="recipeImage" accept="image/*" onchange="handleImageSelect()">
                 </div>
+                <button type="button" id="ocrBtn" class="ocr-btn" onclick="extractText()">🪄 חלצי טקסט מהתמונה באופן אוטומטי</button>
+                <span id="ocrStatus" class="ocr-status"></span>
             </div>
             
             <div class="form-group">
@@ -325,19 +134,17 @@
             
             <div class="form-group">
                 <label>אופן ההכנה (אופציונלי)</label>
-                <textarea id="recipeInstructions" placeholder="איך מכינים..." rows="3"></textarea>
+                <textarea id="recipeInstructions" placeholder="איך מכינים... (ניתן לחלץ מהתמונה)" rows="4"></textarea>
             </div>
             
             <button class="btn-submit" onclick="addRecipe()">שמירת המתכון אליי ✨</button>
         </div>
 
-        <!-- חיפוש -->
         <div class="search-box">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput" class="search-input" placeholder="חיפוש מתכון לפי שם..." onkeyup="renderRecipes()">
         </div>
 
-        <!-- קטגוריות אופקיות -->
         <div class="category-chips" id="categoryChips">
             <button class="chip active" onclick="setFilter('הכל')">הכל</button>
             <button class="chip" onclick="setFilter('מנות ראשונות')">מנות ראשונות</button>
@@ -348,30 +155,91 @@
             <button class="chip" onclick="setFilter('מתוקים')">מתוקים</button>
         </div>
 
-        <!-- רשימה -->
         <div class="recipe-list" id="recipesContainer"></div>
     </div>
 
     <script>
-        let recipes = JSON.parse(localStorage.getItem('myMobileRecipes')) || [];
+        // הוספנו הגנה למקרה שהזיכרון התבלבל
+        let recipes = [];
+        try {
+            const savedData = localStorage.getItem('myMobileRecipes');
+            if (savedData) {
+                recipes = JSON.parse(savedData);
+            }
+        } catch (e) {
+            console.error("שגיאה בטעינת מתכונים", e);
+            recipes = [];
+        }
+
         let currentFilter = 'הכל';
 
-        function updateFileStatus() {
+        function handleImageSelect() {
             const fileInput = document.getElementById('recipeImage');
             const fileText = document.getElementById('fileText');
+            const ocrBtn = document.getElementById('ocrBtn');
+            const ocrStatus = document.getElementById('ocrStatus');
+            
+            ocrStatus.innerText = '';
+            
             if (fileInput.files.length > 0) {
                 fileText.innerHTML = '✅ התמונה נבחרה בהצלחה!';
                 fileText.style.color = '#5B6D54';
+                ocrBtn.style.display = 'block'; 
             } else {
                 fileText.innerHTML = '📷 לחצי להעלאת תמונה או צילום מסך';
                 fileText.style.color = 'var(--accent)';
+                ocrBtn.style.display = 'none';
+            }
+        }
+
+        async function extractText() {
+            if (typeof Tesseract === 'undefined') {
+                alert("המערכת עדיין נטענת ברקע, אנא המתיני מספר שניות ונסי שוב.");
+                return;
+            }
+
+            const fileInput = document.getElementById('recipeImage');
+            if (!fileInput.files.length) return;
+            
+            const file = fileInput.files[0];
+            const status = document.getElementById('ocrStatus');
+            const btn = document.getElementById('ocrBtn');
+            const instructionsField = document.getElementById('recipeInstructions');
+            
+            btn.disabled = true;
+            status.style.color = 'var(--accent)';
+            status.innerText = '⏳ סורק את התמונה... (בפעם הראשונה זה עשוי לקחת כדקה)';
+            
+            try {
+                const worker = await Tesseract.createWorker('heb');
+                const ret = await worker.recognize(file);
+                const extractedText = ret.data.text.trim();
+                
+                if (extractedText) {
+                    if (instructionsField.value) {
+                        instructionsField.value += '\\n\\n' + extractedText;
+                    } else {
+                        instructionsField.value = extractedText;
+                    }
+                    status.style.color = 'var(--natural-green)';
+                    status.innerText = '✅ הטקסט פוענח והודבק בהצלחה! אפשר לערוך אותו עכשיו.';
+                } else {
+                    status.style.color = 'var(--soft-terracotta)';
+                    status.innerText = '⚠️ לא זוהה טקסט ברור בתמונה.';
+                }
+                
+                await worker.terminate();
+            } catch (error) {
+                console.error(error);
+                status.style.color = 'var(--soft-terracotta)';
+                status.innerText = '❌ אירעה שגיאה בסריקת התמונה.';
+            } finally {
+                btn.disabled = false;
             }
         }
 
         function setFilter(category) {
             currentFilter = category;
-            
-            // עדכון חזותי של הכפתורים
             const chips = document.querySelectorAll('.chip');
             chips.forEach(chip => {
                 if (chip.textContent.trim() === category) {
@@ -380,13 +248,13 @@
                     chip.classList.remove('active');
                 }
             });
-            
             renderRecipes();
         }
 
         function renderRecipes() {
             const container = document.getElementById('recipesContainer');
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
             
             container.innerHTML = '';
             
@@ -400,7 +268,7 @@
             }
 
             const filteredRecipes = recipes.filter(recipe => {
-                const matchesSearch = recipe.name.toLowerCase().includes(searchTerm);
+                const matchesSearch = recipe.name && recipe.name.toLowerCase().includes(searchTerm);
                 const matchesCategory = currentFilter === 'הכל' || recipe.category === currentFilter;
                 return matchesSearch && matchesCategory;
             });
@@ -427,10 +295,117 @@
                 let ingredientsHtml = recipe.ingredients ? `
                     <div class="recipe-text-section">
                         <strong>מצרכים:</strong>
-                        <p>\${recipe.ingredients}</p>
+                        <p>${recipe.ingredients}</p>
                     </div>` : '';
                     
                 let instructionsHtml = recipe.instructions ? `
                     <div class="recipe-text-section">
                         <strong>אופן ההכנה:</strong>
-                        <p>\${recipe.instructions}</p>
+                        <p>${recipe.instructions}</p>
+                    </div>` : '';
+
+                card.innerHTML = `
+                    ${imageHtml}
+                    <div class="recipe-content">
+                        <span class="tag"># ${recipe.category}</span>
+                        <h3>${recipe.name}</h3>
+                        ${ingredientsHtml}
+                        ${instructionsHtml}
+                    </div>
+                    <div class="card-footer">
+                        <button class="delete-btn" onclick="deleteRecipe(${originalIndex})">🗑️ מחיקה</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function resizeImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; 
+                    let scaleSize = MAX_WIDTH / img.width;
+                    
+                    if (img.width > MAX_WIDTH) {
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+                    } else {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                    }
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    callback(canvas.toDataURL('image/jpeg', 0.65));
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function addRecipe() {
+            const name = document.getElementById('recipeName').value;
+            const category = document.getElementById('recipeCategory').value;
+            const ingredients = document.getElementById('recipeIngredients').value;
+            const instructions = document.getElementById('recipeInstructions').value;
+            const imageFile = document.getElementById('recipeImage').files[0];
+
+            if (!name) {
+                alert('נא להזין את שם המתכון.');
+                return;
+            }
+
+            if (!ingredients && !instructions && !imageFile) {
+                alert('נא להוסיף מצרכים, אופן הכנה או תמונה למתכון.');
+                return;
+            }
+
+            const saveProcess = (imageBase64) => {
+                const newRecipe = { 
+                    id: Date.now(), 
+                    name, 
+                    category, 
+                    ingredients, 
+                    instructions,
+                    image: imageBase64
+                };
+                
+                recipes.push(newRecipe);
+                localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
+                
+                document.getElementById('recipeName').value = '';
+                document.getElementById('recipeIngredients').value = '';
+                document.getElementById('recipeInstructions').value = '';
+                document.getElementById('recipeImage').value = '';
+                const ocrStatus = document.getElementById('ocrStatus');
+                if(ocrStatus) ocrStatus.innerText = '';
+                handleImageSelect();
+                
+                renderRecipes();
+            };
+
+            if (imageFile) {
+                resizeImage(imageFile, saveProcess);
+            } else {
+                saveProcess('');
+            }
+        }
+
+        function deleteRecipe(index) {
+            if (confirm('למחוק את המתכון הזה? 🗑️')) {
+                recipes.splice(index, 1);
+                localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
+                renderRecipes();
+            }
+        }
+
+        // טעינה ראשונית בטוחה
+        window.onload = function() {
+            renderRecipes();
+        };
+    </script>
+</body>
+</html>
