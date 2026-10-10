@@ -101,4 +101,319 @@
         
         <div class="card" id="formCard">
             <h2 class="card-title" id="formTitle">📖 הוספת מתכון חדש</h2>
-            <div class="form-group
+            <div class="form-group">
+                <label>שם המתכון *</label>
+                <input type="text" id="recipeName" placeholder="למשל: הפשטידה המנצחת של אמא" required>
+            </div>
+            
+            <div class="form-group">
+                <label>קטגוריה</label>
+                <select id="recipeCategory">
+                    <option value="מנות ראשונות">מנות ראשונות</option>
+                    <option value="סלטים">סלטים</option>
+                    <option value="בשרי">בשרי</option>
+                    <option value="מאפים מלוחים">מאפים מלוחים</option>
+                    <option value="מנות לאירוח">מנות לאירוח</option>
+                    <option value="מתוקים">מתוקים</option>
+                </select>
+            </div>
+            
+            <div class="form-group" style="margin-top:18px;">
+                <label>תמונות (אפשר לבחור כמה)</label>
+                <div class="file-upload-wrapper">
+                    <span class="file-upload-text" id="fileText">📷 לחצי לבחירת תמונות</span>
+                    <input type="file" id="recipeImage" accept="image/*" multiple onchange="handleImageSelect()">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>מצרכים (אופציונלי)</label>
+                <textarea id="recipeIngredients" placeholder="כאן כותבים את המצרכים..." rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>אופן ההכנה (אופציונלי)</label>
+                <textarea id="recipeInstructions" placeholder="איך מכינים..." rows="4"></textarea>
+            </div>
+            
+            <button class="btn-submit" id="submitBtn" onclick="saveRecipe()">שמירת המתכון אליי ✨</button>
+            <button class="btn-submit" id="cancelEditBtn" onclick="cancelEdit()">ביטול עריכה</button>
+        </div>
+
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="חיפוש מתכון לפי שם..." onkeyup="renderRecipes()">
+        </div>
+
+        <div class="category-chips" id="categoryChips">
+            <button class="chip active" onclick="setFilter('הכל')">הכל</button>
+            <button class="chip" onclick="setFilter('מנות ראשונות')">מנות ראשונות</button>
+            <button class="chip" onclick="setFilter('סלטים')">סלטים</button>
+            <button class="chip" onclick="setFilter('בשרי')">בשרי</button>
+            <button class="chip" onclick="setFilter('מאפים מלוחים')">מאפים מלוחים</button>
+            <button class="chip" onclick="setFilter('מנות לאירוח')">מנות לאירוח</button>
+            <button class="chip" onclick="setFilter('מתוקים')">מתוקים</button>
+        </div>
+
+        <div class="recipe-list" id="recipesContainer"></div>
+    </div>
+
+    <script>
+        let recipes = [];
+        let editingId = null;
+        let currentFilter = 'הכל';
+
+        // טעינת נתונים
+        try {
+            const savedData = localStorage.getItem('myMobileRecipes');
+            if (savedData) {
+                recipes = JSON.parse(savedData);
+            }
+        } catch (e) {
+            recipes = [];
+        }
+
+        function handleImageSelect() {
+            const fileInput = document.getElementById('recipeImage');
+            const fileText = document.getElementById('fileText');
+            if (fileInput.files.length > 0) {
+                fileText.innerHTML = `✅ נבחרו ${fileInput.files.length} תמונות`;
+                fileText.style.color = '#5B6D54';
+            } else {
+                fileText.innerHTML = '📷 לחצי לבחירת תמונות';
+                fileText.style.color = 'var(--accent)';
+            }
+        }
+
+        function setFilter(category) {
+            currentFilter = category;
+            const chips = document.querySelectorAll('.chip');
+            chips.forEach(chip => {
+                if (chip.textContent.trim() === category) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+            renderRecipes();
+        }
+
+        function renderRecipes() {
+            const container = document.getElementById('recipesContainer');
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            container.innerHTML = '';
+            
+            if (recipes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span style="font-size:32px;">🍳</span>
+                        <p>עדיין אין מתכונים. הוסיפי את הראשון שלך למעלה!</p>
+                    </div>`;
+                return;
+            }
+
+            const filteredRecipes = recipes.filter(recipe => {
+                const matchesSearch = recipe.name && recipe.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = currentFilter === 'הכל' || recipe.category === currentFilter;
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filteredRecipes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span style="font-size:24px;">🤷‍♀️</span>
+                        <p>לא נמצאו מתכונים שתואמים לחיפוש שלך.</p>
+                    </div>`;
+                return;
+            }
+
+            filteredRecipes.slice().reverse().forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = 'recipe-card';
+                
+                // תמיכה במתכונים הישנים (תמונה אחת) ובחדשים (מערך תמונות)
+                let imagesList = recipe.images || [];
+                if (imagesList.length === 0 && recipe.image) {
+                    imagesList = [recipe.image];
+                }
+
+                let galleryHtml = '';
+                if (imagesList.length > 0) {
+                    galleryHtml = `<div class="recipe-images-gallery">`;
+                    imagesList.forEach(img => {
+                        galleryHtml += `<img src="${img}" class="gallery-item" alt="תמונה">`;
+                    });
+                    galleryHtml += `</div>`;
+                }
+                    
+                let ingredientsHtml = recipe.ingredients ? `
+                    <div class="recipe-text-section">
+                        <strong>מצרכים:</strong>
+                        <p>${recipe.ingredients}</p>
+                    </div>` : '';
+                    
+                let instructionsHtml = recipe.instructions ? `
+                    <div class="recipe-text-section">
+                        <strong>אופן ההכנה:</strong>
+                        <p>${recipe.instructions}</p>
+                    </div>` : '';
+
+                card.innerHTML = `
+                    ${galleryHtml}
+                    <div class="recipe-content">
+                        <span class="tag"># ${recipe.category}</span>
+                        <h3>${recipe.name}</h3>
+                        ${ingredientsHtml}
+                        ${instructionsHtml}
+                    </div>
+                    <div class="card-footer">
+                        <button class="action-btn edit-btn" onclick="editRecipe(${recipe.id})">✏️ עריכה</button>
+                        <button class="action-btn delete-btn" onclick="deleteRecipe(${recipe.id})">🗑️ מחיקה</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // כיווץ תמונה עם Promise כדי לתמוך בכמה תמונות במקביל
+        function resizeImageAsync(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 600; // רזולוציה אופטימלית לחיסכון במקום
+                        let scaleSize = MAX_WIDTH / img.width;
+                        
+                        if (img.width > MAX_WIDTH) {
+                            canvas.width = MAX_WIDTH;
+                            canvas.height = img.height * scaleSize;
+                        } else {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                        }
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.5)); // איכות 50% לחיסכון בזיכרון
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function saveRecipe() {
+            const name = document.getElementById('recipeName').value;
+            const category = document.getElementById('recipeCategory').value;
+            const ingredients = document.getElementById('recipeIngredients').value;
+            const instructions = document.getElementById('recipeInstructions').value;
+            const fileInput = document.getElementById('recipeImage');
+            
+            if (!name) {
+                alert('נא להזין את שם המתכון.');
+                return;
+            }
+
+            document.getElementById('submitBtn').innerText = '⏳ שומר...';
+            
+            let imagesArray = [];
+            
+            // אם אנחנו במצב עריכה ולא העלו תמונות חדשות - נשמור את הקיימות
+            if (editingId && fileInput.files.length === 0) {
+                const existingRecipe = recipes.find(r => r.id === editingId);
+                if (existingRecipe) {
+                    imagesArray = existingRecipe.images || (existingRecipe.image ? [existingRecipe.image] : []);
+                }
+            } else {
+                // העלאת תמונות חדשות (עד 4 תמונות למתכון כדי לא לחסום את הזיכרון)
+                const maxFiles = Math.min(fileInput.files.length, 4);
+                if (fileInput.files.length > 4) alert("שימי לב: ניתן לשמור עד 4 תמונות למתכון. רק ה-4 הראשונות יישמרו.");
+                
+                for (let i = 0; i < maxFiles; i++) {
+                    const base64 = await resizeImageAsync(fileInput.files[i]);
+                    imagesArray.push(base64);
+                }
+            }
+
+            const recipeData = { 
+                id: editingId ? editingId : Date.now(), 
+                name, 
+                category, 
+                ingredients, 
+                instructions,
+                images: imagesArray
+            };
+            
+            if (editingId) {
+                const index = recipes.findIndex(r => r.id === editingId);
+                if(index > -1) recipes[index] = recipeData;
+            } else {
+                recipes.push(recipeData);
+            }
+            
+            try {
+                localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
+                resetForm();
+                renderRecipes();
+            } catch (e) {
+                alert('⚠️ אין מספיק זיכרון בדפדפן! נסי למחוק מתכונים ישנים או להעלות פחות תמונות.');
+                document.getElementById('submitBtn').innerText = editingId ? '💾 עדכון המתכון' : 'שמירת המתכון אליי ✨';
+            }
+        }
+
+        function editRecipe(id) {
+            const recipe = recipes.find(r => r.id === id);
+            if (!recipe) return;
+            
+            editingId = id;
+            document.getElementById('recipeName').value = recipe.name;
+            document.getElementById('recipeCategory').value = recipe.category;
+            document.getElementById('recipeIngredients').value = recipe.ingredients || '';
+            document.getElementById('recipeInstructions').value = recipe.instructions || '';
+            
+            document.getElementById('formTitle').innerText = '✏️ עריכת מתכון';
+            document.getElementById('submitBtn').innerText = '💾 שמירת העדכון';
+            document.getElementById('cancelEditBtn').style.display = 'block';
+            
+            document.getElementById('fileText').innerHTML = '📷 לבחירת תמונות חדשות (יחליפו את הקיימות)';
+            document.getElementById('recipeImage').value = ''; // איפוס בחירת הקבצים
+            
+            // גלילה חלקה לטופס
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            resetForm();
+        }
+
+        function resetForm() {
+            editingId = null;
+            document.getElementById('recipeName').value = '';
+            document.getElementById('recipeIngredients').value = '';
+            document.getElementById('recipeInstructions').value = '';
+            document.getElementById('recipeImage').value = '';
+            
+            document.getElementById('formTitle').innerText = '📖 הוספת מתכון חדש';
+            document.getElementById('submitBtn').innerText = 'שמירת המתכון אליי ✨';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            handleImageSelect();
+        }
+
+        function deleteRecipe(id) {
+            if (confirm('למחוק את המתכון הזה? 🗑️')) {
+                recipes = recipes.filter(r => r.id !== id);
+                localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
+                renderRecipes();
+            }
+        }
+
+        window.onload = function() {
+            renderRecipes();
+        };
+    </script>
+</body>
+</html>
