@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>המתכונים שלי 🌿</title>
-    <!-- הוספנו defer כדי שהספרייה לא תתקע את שאר האתר -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
     <style>
         :root {
             --primary: #4A3525;
@@ -99,7 +97,6 @@
         
         <div class="card">
             <h2 class="card-title">📖 הוספת מתכון חדש</h2>
-            
             <div class="form-group">
                 <label>שם המתכון *</label>
                 <input type="text" id="recipeName" placeholder="למשל: הפשטידה המנצחת של אמא" required>
@@ -123,7 +120,7 @@
                     <span class="file-upload-text" id="fileText">📷 לחצי להעלאת תמונה או צילום מסך</span>
                     <input type="file" id="recipeImage" accept="image/*" onchange="handleImageSelect()">
                 </div>
-                <button type="button" id="ocrBtn" class="ocr-btn" onclick="extractText()">🪄 חלצי טקסט מהתמונה באופן אוטומטי</button>
+                <button type="button" id="ocrBtn" class="ocr-btn" onclick="startOCR()">🪄 חלצי טקסט מהתמונה באופן אוטומטי</button>
                 <span id="ocrStatus" class="ocr-status"></span>
             </div>
             
@@ -159,7 +156,12 @@
     </div>
 
     <script>
-        // הוספנו הגנה למקרה שהזיכרון התבלבל
+        // מנגנון תפיסת שגיאות אוטומטי
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            alert("היי! משהו נתקע בקוד. השגיאה: " + msg);
+            return false;
+        };
+
         let recipes = [];
         try {
             const savedData = localStorage.getItem('myMobileRecipes');
@@ -167,7 +169,6 @@
                 recipes = JSON.parse(savedData);
             }
         } catch (e) {
-            console.error("שגיאה בטעינת מתכונים", e);
             recipes = [];
         }
 
@@ -192,22 +193,38 @@
             }
         }
 
-        async function extractText() {
-            if (typeof Tesseract === 'undefined') {
-                alert("המערכת עדיין נטענת ברקע, אנא המתיני מספר שניות ונסי שוב.");
-                return;
-            }
+        // טעינת תוסף הסריקה רק כשלוחצים, כדי לא לתקוע את האתר
+        function startOCR() {
+            const status = document.getElementById('ocrStatus');
+            const btn = document.getElementById('ocrBtn');
+            btn.disabled = true;
+            status.style.color = 'var(--accent)';
+            status.innerText = '⏳ טוען מערכת סריקה...';
 
+            if (typeof Tesseract === 'undefined') {
+                const script = document.createElement('script');
+                script.src = '[https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js](https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js)';
+                script.onload = () => runOCR();
+                script.onerror = () => {
+                    status.style.color = 'var(--soft-terracotta)';
+                    status.innerText = '❌ לא הצלחנו לטעון את מערכת הסריקה. ודאי שיש אינטרנט.';
+                    btn.disabled = false;
+                };
+                document.head.appendChild(script);
+            } else {
+                runOCR();
+            }
+        }
+
+        async function runOCR() {
             const fileInput = document.getElementById('recipeImage');
-            if (!fileInput.files.length) return;
-            
-            const file = fileInput.files[0];
             const status = document.getElementById('ocrStatus');
             const btn = document.getElementById('ocrBtn');
             const instructionsField = document.getElementById('recipeInstructions');
+
+            if (!fileInput.files.length) return;
+            const file = fileInput.files[0];
             
-            btn.disabled = true;
-            status.style.color = 'var(--accent)';
             status.innerText = '⏳ סורק את התמונה... (בפעם הראשונה זה עשוי לקחת כדקה)';
             
             try {
@@ -217,20 +234,18 @@
                 
                 if (extractedText) {
                     if (instructionsField.value) {
-                        instructionsField.value += '\\n\\n' + extractedText;
+                        instructionsField.value += '\n\n' + extractedText;
                     } else {
                         instructionsField.value = extractedText;
                     }
                     status.style.color = 'var(--natural-green)';
-                    status.innerText = '✅ הטקסט פוענח והודבק בהצלחה! אפשר לערוך אותו עכשיו.';
+                    status.innerText = '✅ הטקסט פוענח והודבק בהצלחה!';
                 } else {
                     status.style.color = 'var(--soft-terracotta)';
                     status.innerText = '⚠️ לא זוהה טקסט ברור בתמונה.';
                 }
-                
                 await worker.terminate();
             } catch (error) {
-                console.error(error);
                 status.style.color = 'var(--soft-terracotta)';
                 status.innerText = '❌ אירעה שגיאה בסריקת התמונה.';
             } finally {
@@ -295,13 +310,13 @@
                 let ingredientsHtml = recipe.ingredients ? `
                     <div class="recipe-text-section">
                         <strong>מצרכים:</strong>
-                        <p>${recipe.ingredients}</p>
+                        <p>${recipe.ingredients.replace(/\n/g, '<br>')}</p>
                     </div>` : '';
                     
                 let instructionsHtml = recipe.instructions ? `
                     <div class="recipe-text-section">
                         <strong>אופן ההכנה:</strong>
-                        <p>${recipe.instructions}</p>
+                        <p>${recipe.instructions.replace(/\n/g, '<br>')}</p>
                     </div>` : '';
 
                 card.innerHTML = `
@@ -402,7 +417,6 @@
             }
         }
 
-        // טעינה ראשונית בטוחה
         window.onload = function() {
             renderRecipes();
         };
