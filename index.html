@@ -44,6 +44,10 @@
         input::placeholder, textarea::placeholder { color: #AFA090; }
         input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); background-color: #FFFFFF; box-shadow: 0 0 0 3px rgba(142, 122, 95, 0.08); }
         
+        .category-row { display: flex; gap: 8px; }
+        .category-row select { flex: 2; }
+        .category-row input { flex: 1; }
+
         .file-upload-wrapper { position: relative; background: #FCFAF7; border: 2px dashed #D6CBB7; border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
         .file-upload-wrapper:active { background: #EFE9DF; }
         .file-upload-wrapper input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
@@ -69,7 +73,6 @@
         
         .tag { display: inline-block; background: #F7F3EB; color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 750; margin-bottom: 12px; }
         
-        /* גלריית תמונות אופקית */
         .recipe-images-gallery { display: flex; gap: 8px; overflow-x: auto; padding: 15px 18px 5px; background: #FAF8F5; border-bottom: 1px dashed var(--border-color); -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .recipe-images-gallery::-webkit-scrollbar { display: none; }
         .gallery-item { height: 220px; width: auto; border-radius: 12px; object-fit: contain; flex-shrink: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #EFE9DF; }
@@ -108,14 +111,17 @@
             
             <div class="form-group">
                 <label>קטגוריה</label>
-                <select id="recipeCategory">
-                    <option value="מנות ראשונות">מנות ראשונות</option>
-                    <option value="סלטים">סלטים</option>
-                    <option value="בשרי">בשרי</option>
-                    <option value="מאפים מלוחים">מאפים מלוחים</option>
-                    <option value="מנות לאירוח">מנות לאירוח</option>
-                    <option value="מתוקים">מתוקים</option>
-                </select>
+                <div class="category-row">
+                    <select id="recipeCategory">
+                        <option value="מנות ראשונות">מנות ראשונות</option>
+                        <option value="סלטים">סלטים</option>
+                        <option value="בשרי">בשרי</option>
+                        <option value="מאפים מלוחים">מאפים מלוחים</option>
+                        <option value="מנות לאירוח">מנות לאירוח</option>
+                        <option value="מתוקים">מתוקים</option>
+                    </select>
+                    <input type="text" id="newCategoryInput" placeholder="+ הוספת קטגוריה חדשה">
+                </div>
             </div>
             
             <div class="form-group" style="margin-top:18px;">
@@ -145,6 +151,7 @@
             <input type="text" id="searchInput" class="search-input" placeholder="חיפוש מתכון לפי שם..." onkeyup="renderRecipes()">
         </div>
 
+        <!-- קטגוריות אופקיות דינמיות -->
         <div class="category-chips" id="categoryChips">
             <button class="chip active" onclick="setFilter('הכל')">הכל</button>
             <button class="chip" onclick="setFilter('מנות ראשונות')">מנות ראשונות</button>
@@ -160,17 +167,46 @@
 
     <script>
         let recipes = [];
+        let customCategories = ['מנות ראשונות', 'סלטים', 'בשרי', 'מאפים מלוחים', 'מנות לאירוח', 'מתוקים'];
         let editingId = null;
         let currentFilter = 'הכל';
 
         // טעינת נתונים
         try {
             const savedData = localStorage.getItem('myMobileRecipes');
-            if (savedData) {
-                recipes = JSON.parse(savedData);
-            }
+            if (savedData) recipes = JSON.parse(savedData);
+
+            const savedCats = localStorage.getItem('myCustomCategories');
+            if (savedCats) customCategories = JSON.parse(savedCats);
         } catch (e) {
             recipes = [];
+        }
+
+        function updateCategoriesUI() {
+            const select = document.getElementById('recipeCategory');
+            const chipsContainer = document.getElementById('categoryChips');
+            
+            // שמירת הבחירה הנוכחית בטופס אם קיימת
+            const currentSelected = select.value;
+
+            // עדכון רשימת הבחירה בטופס
+            select.innerHTML = '';
+            customCategories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                select.appendChild(opt);
+            });
+            if (customCategories.includes(currentSelected)) {
+                select.value = currentSelected;
+            }
+
+            // עדכון בועות הסינון למעלה
+            chipsContainer.innerHTML = `<button class="chip ${currentFilter === 'הכל' ? 'active' : ''}" onclick="setFilter('הכל')">הכל</button>`;
+            customCategories.forEach(cat => {
+                const isActive = currentFilter === cat ? 'active' : '';
+                chipsContainer.innerHTML += `<button class="chip ${isActive}" onclick="setFilter('${cat}')">${cat}</button>`;
+            });
         }
 
         function handleImageSelect() {
@@ -187,14 +223,7 @@
 
         function setFilter(category) {
             currentFilter = category;
-            const chips = document.querySelectorAll('.chip');
-            chips.forEach(chip => {
-                if (chip.textContent.trim() === category) {
-                    chip.classList.add('active');
-                } else {
-                    chip.classList.remove('active');
-                }
-            });
+            updateCategoriesUI();
             renderRecipes();
         }
 
@@ -233,11 +262,8 @@
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
                 
-                // תמיכה במתכונים הישנים (תמונה אחת) ובחדשים (מערך תמונות)
                 let imagesList = recipe.images || [];
-                if (imagesList.length === 0 && recipe.image) {
-                    imagesList = [recipe.image];
-                }
+                if (imagesList.length === 0 && recipe.image) imagesList = [recipe.image];
 
                 let galleryHtml = '';
                 if (imagesList.length > 0) {
@@ -277,7 +303,6 @@
             });
         }
 
-        // כיווץ תמונה עם Promise כדי לתמוך בכמה תמונות במקביל
         function resizeImageAsync(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -285,7 +310,7 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 600; // רזולוציה אופטימלית לחיסכון במקום
+                        const MAX_WIDTH = 600;
                         let scaleSize = MAX_WIDTH / img.width;
                         
                         if (img.width > MAX_WIDTH) {
@@ -298,7 +323,7 @@
                         
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.5)); // איכות 50% לחיסכון בזיכרון
+                        resolve(canvas.toDataURL('image/jpeg', 0.5));
                     }
                     img.src = e.target.result;
                 }
@@ -308,7 +333,8 @@
 
         async function saveRecipe() {
             const name = document.getElementById('recipeName').value;
-            const category = document.getElementById('recipeCategory').value;
+            let category = document.getElementById('recipeCategory').value;
+            const newCatInput = document.getElementById('newCategoryInput').value.trim();
             const ingredients = document.getElementById('recipeIngredients').value;
             const instructions = document.getElementById('recipeInstructions').value;
             const fileInput = document.getElementById('recipeImage');
@@ -318,21 +344,26 @@
                 return;
             }
 
+            // אם המשתמשת הקלידה קטגוריה חדשה בשדה הטקסט, נוסיף אותה למאגר
+            if (newCatInput) {
+                category = newCatInput;
+                if (!customCategories.includes(category)) {
+                    customCategories.push(category);
+                    localStorage.setItem('myCustomCategories', JSON.stringify(customCategories));
+                }
+                document.getElementById('newCategoryInput').value = '';
+            }
+
             document.getElementById('submitBtn').innerText = '⏳ שומר...';
             
             let imagesArray = [];
-            
-            // אם אנחנו במצב עריכה ולא העלו תמונות חדשות - נשמור את הקיימות
             if (editingId && fileInput.files.length === 0) {
                 const existingRecipe = recipes.find(r => r.id === editingId);
                 if (existingRecipe) {
                     imagesArray = existingRecipe.images || (existingRecipe.image ? [existingRecipe.image] : []);
                 }
             } else {
-                // העלאת תמונות חדשות (עד 4 תמונות למתכון כדי לא לחסום את הזיכרון)
                 const maxFiles = Math.min(fileInput.files.length, 4);
-                if (fileInput.files.length > 4) alert("שימי לב: ניתן לשמור עד 4 תמונות למתכון. רק ה-4 הראשונות יישמרו.");
-                
                 for (let i = 0; i < maxFiles; i++) {
                     const base64 = await resizeImageAsync(fileInput.files[i]);
                     imagesArray.push(base64);
@@ -358,6 +389,7 @@
             try {
                 localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
                 resetForm();
+                updateCategoriesUI();
                 renderRecipes();
             } catch (e) {
                 alert('⚠️ אין מספיק זיכרון בדפדפן! נסי למחוק מתכונים ישנים או להעלות פחות תמונות.');
@@ -371,18 +403,23 @@
             
             editingId = id;
             document.getElementById('recipeName').value = recipe.name;
+            
+            // וידוא שהקטגוריה קיימת בתוך הרשימה הנפתחת לפני הבחירה
+            if (!customCategories.includes(recipe.category)) {
+                customCategories.push(recipe.category);
+                updateCategoriesUI();
+            }
             document.getElementById('recipeCategory').value = recipe.category;
+            
             document.getElementById('recipeIngredients').value = recipe.ingredients || '';
             document.getElementById('recipeInstructions').value = recipe.instructions || '';
             
             document.getElementById('formTitle').innerText = '✏️ עריכת מתכון';
             document.getElementById('submitBtn').innerText = '💾 שמירת העדכון';
             document.getElementById('cancelEditBtn').style.display = 'block';
-            
             document.getElementById('fileText').innerHTML = '📷 לבחירת תמונות חדשות (יחליפו את הקיימות)';
-            document.getElementById('recipeImage').value = ''; // איפוס בחירת הקבצים
+            document.getElementById('recipeImage').value = '';
             
-            // גלילה חלקה לטופס
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -393,6 +430,7 @@
         function resetForm() {
             editingId = null;
             document.getElementById('recipeName').value = '';
+            document.getElementById('newCategoryInput').value = '';
             document.getElementById('recipeIngredients').value = '';
             document.getElementById('recipeInstructions').value = '';
             document.getElementById('recipeImage').value = '';
@@ -412,6 +450,7 @@
         }
 
         window.onload = function() {
+            updateCategoriesUI();
             renderRecipes();
         };
     </script>
