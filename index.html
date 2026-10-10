@@ -14,6 +14,7 @@
             --card-bg: #FFFFFF;
             --text-main: #332219;
             --border-color: #EFE9DF;
+            --edit-color: #5C7C8A;
         }
         
         * { box-sizing: border-box; }
@@ -48,11 +49,6 @@
         .file-upload-wrapper input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         .file-upload-text { font-size: 13px; font-weight: 600; color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-        .ocr-btn { background-color: #F1ECE3; color: var(--primary); border: 1px solid var(--border-color); padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none; width: 100%; transition: all 0.2s; }
-        .ocr-btn:hover { background-color: #EFE9DF; }
-        .ocr-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .ocr-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: block; text-align: center; font-weight: 600; }
-
         .btn-submit { width: 100%; background-color: var(--natural-green); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 750; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(91, 109, 84, 0.2); transition: all 0.2s ease; margin-top: 10px; }
         .btn-submit:active { transform: translateY(1px); box-shadow: none; }
         
@@ -73,19 +69,27 @@
         
         .tag { display: inline-block; background: #F7F3EB; color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 750; margin-bottom: 12px; }
         
-        .recipe-image-container { width: 100%; max-height: 350px; overflow: hidden; background: #FAF8F5; display: flex; align-items: center; justify-content: center; border-bottom: 1px dashed var(--border-color); }
-        .recipe-image { width: 100%; height: auto; max-height: 350px; object-fit: contain; }
+        /* גלריית תמונות אופקית */
+        .recipe-images-gallery { display: flex; gap: 8px; overflow-x: auto; padding: 15px 18px 5px; background: #FAF8F5; border-bottom: 1px dashed var(--border-color); -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .recipe-images-gallery::-webkit-scrollbar { display: none; }
+        .gallery-item { height: 220px; width: auto; border-radius: 12px; object-fit: contain; flex-shrink: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #EFE9DF; }
         
         .recipe-text-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid #FAF6F0; }
         .recipe-text-section strong { display: block; font-size: 13px; color: var(--accent); margin-bottom: 4px; font-weight: 750; }
         .recipe-text-section p { margin: 0; font-size: 14px; color: var(--text-main); white-space: pre-line; }
         
-        .card-footer { display: flex; justify-content: flex-end; padding: 12px 18px; background-color: #FCFAF7; border-top: 1.5px solid var(--border-color); }
-        .delete-btn { background-color: transparent; color: var(--soft-terracotta); border: 1px solid #F6DDD2; padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; }
+        .card-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; background-color: #FCFAF7; border-top: 1.5px solid var(--border-color); }
+        
+        .action-btn { background-color: transparent; padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; }
+        .delete-btn { color: var(--soft-terracotta); border: 1px solid #F6DDD2; }
         .delete-btn:active { background: #F6DDD2; }
+        .edit-btn { color: var(--edit-color); border: 1px solid #D1DFE4; }
+        .edit-btn:active { background: #D1DFE4; }
         
         .empty-state { text-align: center; padding: 40px 20px; color: var(--accent); }
         .empty-state p { margin: 10px 0 0; font-size: 15px; }
+
+        #cancelEditBtn { background-color: #EFE9DF; color: var(--text-main); margin-top: 10px; display: none; box-shadow: none; }
     </style>
 </head>
 <body>
@@ -95,331 +99,6 @@
             <div class="logo-subtitle">ספר המתכונים האישי והמהיר שלי</div>
         </header>
         
-        <div class="card">
-            <h2 class="card-title">📖 הוספת מתכון חדש</h2>
-            <div class="form-group">
-                <label>שם המתכון *</label>
-                <input type="text" id="recipeName" placeholder="למשל: הפשטידה המנצחת של אמא" required>
-            </div>
-            
-            <div class="form-group">
-                <label>קטגוריה</label>
-                <select id="recipeCategory">
-                    <option value="מנות ראשונות">מנות ראשונות</option>
-                    <option value="סלטים">סלטים</option>
-                    <option value="בשרי">בשרי</option>
-                    <option value="מאפים מלוחים">מאפים מלוחים</option>
-                    <option value="מנות לאירוח">מנות לאירוח</option>
-                    <option value="מתוקים">מתוקים</option>
-                </select>
-            </div>
-            
-            <div class="form-group" style="margin-top:18px;">
-                <label>צילום המתכון / תמונה</label>
-                <div class="file-upload-wrapper">
-                    <span class="file-upload-text" id="fileText">📷 לחצי להעלאת תמונה או צילום מסך</span>
-                    <input type="file" id="recipeImage" accept="image/*" onchange="handleImageSelect()">
-                </div>
-                <button type="button" id="ocrBtn" class="ocr-btn" onclick="startOCR()">🪄 חלצי טקסט מהתמונה באופן אוטומטי</button>
-                <span id="ocrStatus" class="ocr-status"></span>
-            </div>
-            
-            <div class="form-group">
-                <label>מצרכים (אופציונלי)</label>
-                <textarea id="recipeIngredients" placeholder="כאן כותבים את המצרכים..." rows="3"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label>אופן ההכנה (אופציונלי)</label>
-                <textarea id="recipeInstructions" placeholder="איך מכינים... (ניתן לחלץ מהתמונה)" rows="4"></textarea>
-            </div>
-            
-            <button class="btn-submit" onclick="addRecipe()">שמירת המתכון אליי ✨</button>
-        </div>
-
-        <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="חיפוש מתכון לפי שם..." onkeyup="renderRecipes()">
-        </div>
-
-        <div class="category-chips" id="categoryChips">
-            <button class="chip active" onclick="setFilter('הכל')">הכל</button>
-            <button class="chip" onclick="setFilter('מנות ראשונות')">מנות ראשונות</button>
-            <button class="chip" onclick="setFilter('סלטים')">סלטים</button>
-            <button class="chip" onclick="setFilter('בשרי')">בשרי</button>
-            <button class="chip" onclick="setFilter('מאפים מלוחים')">מאפים מלוחים</button>
-            <button class="chip" onclick="setFilter('מנות לאירוח')">מנות לאירוח</button>
-            <button class="chip" onclick="setFilter('מתוקים')">מתוקים</button>
-        </div>
-
-        <div class="recipe-list" id="recipesContainer"></div>
-    </div>
-
-    <script>
-        // מנגנון תפיסת שגיאות אוטומטי
-        window.onerror = function(msg, url, lineNo, columnNo, error) {
-            alert("היי! משהו נתקע בקוד. השגיאה: " + msg);
-            return false;
-        };
-
-        let recipes = [];
-        try {
-            const savedData = localStorage.getItem('myMobileRecipes');
-            if (savedData) {
-                recipes = JSON.parse(savedData);
-            }
-        } catch (e) {
-            recipes = [];
-        }
-
-        let currentFilter = 'הכל';
-
-        function handleImageSelect() {
-            const fileInput = document.getElementById('recipeImage');
-            const fileText = document.getElementById('fileText');
-            const ocrBtn = document.getElementById('ocrBtn');
-            const ocrStatus = document.getElementById('ocrStatus');
-            
-            ocrStatus.innerText = '';
-            
-            if (fileInput.files.length > 0) {
-                fileText.innerHTML = '✅ התמונה נבחרה בהצלחה!';
-                fileText.style.color = '#5B6D54';
-                ocrBtn.style.display = 'block'; 
-            } else {
-                fileText.innerHTML = '📷 לחצי להעלאת תמונה או צילום מסך';
-                fileText.style.color = 'var(--accent)';
-                ocrBtn.style.display = 'none';
-            }
-        }
-
-        // טעינת תוסף הסריקה רק כשלוחצים, כדי לא לתקוע את האתר
-        function startOCR() {
-            const status = document.getElementById('ocrStatus');
-            const btn = document.getElementById('ocrBtn');
-            btn.disabled = true;
-            status.style.color = 'var(--accent)';
-            status.innerText = '⏳ טוען מערכת סריקה...';
-
-            if (typeof Tesseract === 'undefined') {
-                const script = document.createElement('script');
-                script.src = '[https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js](https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js)';
-                script.onload = () => runOCR();
-                script.onerror = () => {
-                    status.style.color = 'var(--soft-terracotta)';
-                    status.innerText = '❌ לא הצלחנו לטעון את מערכת הסריקה. ודאי שיש אינטרנט.';
-                    btn.disabled = false;
-                };
-                document.head.appendChild(script);
-            } else {
-                runOCR();
-            }
-        }
-
-        async function runOCR() {
-            const fileInput = document.getElementById('recipeImage');
-            const status = document.getElementById('ocrStatus');
-            const btn = document.getElementById('ocrBtn');
-            const instructionsField = document.getElementById('recipeInstructions');
-
-            if (!fileInput.files.length) return;
-            const file = fileInput.files[0];
-            
-            status.innerText = '⏳ סורק את התמונה... (בפעם הראשונה זה עשוי לקחת כדקה)';
-            
-            try {
-                const worker = await Tesseract.createWorker('heb');
-                const ret = await worker.recognize(file);
-                const extractedText = ret.data.text.trim();
-                
-                if (extractedText) {
-                    if (instructionsField.value) {
-                        instructionsField.value += '\n\n' + extractedText;
-                    } else {
-                        instructionsField.value = extractedText;
-                    }
-                    status.style.color = 'var(--natural-green)';
-                    status.innerText = '✅ הטקסט פוענח והודבק בהצלחה!';
-                } else {
-                    status.style.color = 'var(--soft-terracotta)';
-                    status.innerText = '⚠️ לא זוהה טקסט ברור בתמונה.';
-                }
-                await worker.terminate();
-            } catch (error) {
-                status.style.color = 'var(--soft-terracotta)';
-                status.innerText = '❌ אירעה שגיאה בסריקת התמונה.';
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        function setFilter(category) {
-            currentFilter = category;
-            const chips = document.querySelectorAll('.chip');
-            chips.forEach(chip => {
-                if (chip.textContent.trim() === category) {
-                    chip.classList.add('active');
-                } else {
-                    chip.classList.remove('active');
-                }
-            });
-            renderRecipes();
-        }
-
-        function renderRecipes() {
-            const container = document.getElementById('recipesContainer');
-            const searchInput = document.getElementById('searchInput');
-            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-            
-            container.innerHTML = '';
-            
-            if (recipes.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <span style="font-size:32px;">🍳</span>
-                        <p>עדיין אין מתכונים. הוסיפי את הראשון שלך למעלה!</p>
-                    </div>`;
-                return;
-            }
-
-            const filteredRecipes = recipes.filter(recipe => {
-                const matchesSearch = recipe.name && recipe.name.toLowerCase().includes(searchTerm);
-                const matchesCategory = currentFilter === 'הכל' || recipe.category === currentFilter;
-                return matchesSearch && matchesCategory;
-            });
-
-            if (filteredRecipes.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <span style="font-size:24px;">🤷‍♀️</span>
-                        <p>לא נמצאו מתכונים שתואמים לחיפוש שלך.</p>
-                    </div>`;
-                return;
-            }
-
-            filteredRecipes.slice().reverse().forEach(recipe => {
-                const originalIndex = recipes.findIndex(r => r.id === recipe.id);
-                const card = document.createElement('div');
-                card.className = 'recipe-card';
-                
-                let imageHtml = recipe.image ? `
-                    <div class="recipe-image-container">
-                        <img src="${recipe.image}" class="recipe-image" alt="${recipe.name}">
-                    </div>` : '';
-                    
-                let ingredientsHtml = recipe.ingredients ? `
-                    <div class="recipe-text-section">
-                        <strong>מצרכים:</strong>
-                        <p>${recipe.ingredients.replace(/\n/g, '<br>')}</p>
-                    </div>` : '';
-                    
-                let instructionsHtml = recipe.instructions ? `
-                    <div class="recipe-text-section">
-                        <strong>אופן ההכנה:</strong>
-                        <p>${recipe.instructions.replace(/\n/g, '<br>')}</p>
-                    </div>` : '';
-
-                card.innerHTML = `
-                    ${imageHtml}
-                    <div class="recipe-content">
-                        <span class="tag"># ${recipe.category}</span>
-                        <h3>${recipe.name}</h3>
-                        ${ingredientsHtml}
-                        ${instructionsHtml}
-                    </div>
-                    <div class="card-footer">
-                        <button class="delete-btn" onclick="deleteRecipe(${originalIndex})">🗑️ מחיקה</button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function resizeImage(file, callback) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; 
-                    let scaleSize = MAX_WIDTH / img.width;
-                    
-                    if (img.width > MAX_WIDTH) {
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scaleSize;
-                    } else {
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                    }
-                    
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    callback(canvas.toDataURL('image/jpeg', 0.65));
-                }
-                img.src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-
-        function addRecipe() {
-            const name = document.getElementById('recipeName').value;
-            const category = document.getElementById('recipeCategory').value;
-            const ingredients = document.getElementById('recipeIngredients').value;
-            const instructions = document.getElementById('recipeInstructions').value;
-            const imageFile = document.getElementById('recipeImage').files[0];
-
-            if (!name) {
-                alert('נא להזין את שם המתכון.');
-                return;
-            }
-
-            if (!ingredients && !instructions && !imageFile) {
-                alert('נא להוסיף מצרכים, אופן הכנה או תמונה למתכון.');
-                return;
-            }
-
-            const saveProcess = (imageBase64) => {
-                const newRecipe = { 
-                    id: Date.now(), 
-                    name, 
-                    category, 
-                    ingredients, 
-                    instructions,
-                    image: imageBase64
-                };
-                
-                recipes.push(newRecipe);
-                localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
-                
-                document.getElementById('recipeName').value = '';
-                document.getElementById('recipeIngredients').value = '';
-                document.getElementById('recipeInstructions').value = '';
-                document.getElementById('recipeImage').value = '';
-                const ocrStatus = document.getElementById('ocrStatus');
-                if(ocrStatus) ocrStatus.innerText = '';
-                handleImageSelect();
-                
-                renderRecipes();
-            };
-
-            if (imageFile) {
-                resizeImage(imageFile, saveProcess);
-            } else {
-                saveProcess('');
-            }
-        }
-
-        function deleteRecipe(index) {
-            if (confirm('למחוק את המתכון הזה? 🗑️')) {
-                recipes.splice(index, 1);
-                localStorage.setItem('myMobileRecipes', JSON.stringify(recipes));
-                renderRecipes();
-            }
-        }
-
-        window.onload = function() {
-            renderRecipes();
-        };
-    </script>
-</body>
-</html>
+        <div class="card" id="formCard">
+            <h2 class="card-title" id="formTitle">📖 הוספת מתכון חדש</h2>
+            <div class="form-group
